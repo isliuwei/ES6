@@ -1,0 +1,275 @@
+---
+layout: post
+title:  "变量的解构赋值"
+date:   2016-08-22 17:02:32 +0800
+categories: jekyll update
+---
+## 1.1 数组的解构赋值
+
+#### 基本用法
+
+`ES6`允许按照一定模式，从数组和对象中提取值，对变量进行赋值，这被称为`解构（Destructuring）`。
+
+{% highlight javascript %}
+
+	/*为变量赋值*/
+	var a = 1;
+	var b = "Hello";
+	var c = {name: 'lisi',age: 23};
+
+
+	/*ES6解构赋值的写法*/
+	var [a,b,c] = [1,"Hello",{name: 'lisi',age: 23}];
+	console.log(a);		//显示 1
+	console.log(b);		//显示 Hello
+	console.log(c);		//显示 Object { name="lisi",  age=23}
+
+
+{% endhighlight %}
+>上述代码表示，可以从数组中提取值，按照位置的对应关系对变量赋值。
+ 本质上这个写法属于 “ 模式匹配 ”，只要等号两边的模式相同，左边的变量就会被赋予对应的值。
+
+
+使用嵌套数组进行解构赋值： 
+
+{% highlight javascript %}
+
+	let [foo,[[bar],baz]] = [1,[[2],3]];
+	console.log(foo);		//显示 1
+	console.log(bar);		//显示 2
+	console.log(baz);		//显示 3
+
+	let [,,third] = [1,2,3];
+	console.log(third);		//显示 3
+
+	let [x,,y] = [1,2,3];
+	console.log(x);			//显示 1
+	console.log(y);			//显示 3
+
+{% endhighlight %}
+
+注意：如果解构不成功，变量的值就等于 `undefined`。
+
+几种解构不成功的示例：
+
+{% highlight javascript %}
+
+	var [a] = [];
+	var [b,c] = [1];
+	console.log(a);			//显示 undefined
+	console.log(c);			//显示 undefined
+
+	/*如果等号的右边不是数组或者不是可遍历的结构，将会报错*/
+	let [foo] = 1;
+	let [foo] = false;
+	let [foo] = NaN;
+	let [foo] = undefined;
+	let [foo] = null;
+	let [foo] = {};
+	/*以上都会报错*/
+
+
+{% endhighlight %}
+
+`只要某种数据结构具备Iterator接口，都可以采用数组形式的解构赋值。`
+
+>解构的前提是等号右边的值必须具备 Iterator 接口 `（在ES6中，有3类数据结构原生具备Iterator接口：数组、某些类数组对象以及 Set 和 Map 结构）。`
+
+
+
+#### 默认值
+
+`解构赋值允许指定默认值。`
+
+{% highlight javascript %}
+
+	var [ oVal = 'defaultValue'] = [];
+	console.log(oVal);			//显示 defaultValue
+
+	var [oNew = 'defaultValue'] = [ 'newValue' ];
+	console.log(oNew);			//显示 newValue
+
+	var [oX,oY = 'lisi'] = ['zhangsan'];
+	console.log(oX);			//显示 zhangsan
+	console.log(oY);			//显示 lisi
+
+	var [oA,oB = 'b'] = ['a',undefined];
+	console.log(oA);			//显示 a
+	console.log(oB);			//显示 b
+
+
+{% endhighlight %}
+>说明：在ES6内部使用严格相等运算符(===)判断一个位置是否有值。如果，该位置的值为undefined时，表示该位置没有值，此时默认值才能生效。所以，如果一个数组成员不严格等于 undefined(即该位置没有值)，默认值是不会生效的。
+
+{% highlight javascript %}
+
+	var [ x = 1 ] = [ undefined ];
+	console.log(x);			//显示 1
+
+	var [ y = 1 ] = [ null ];
+	console.log(y);			//显示 null
+	
+	console.log(undefined == null);			//显示 true
+	console.log(undefined === null);		//显示 false
+
+{% endhighlight %}
+>说明：上面代码说明，如果一个数组成员是 null，默认值就不会生效，因为 null 不严格等于 undefined。
+
+
+## 1.2 对象的解构赋值
+
+对象的解构与数组的不同：数组的元素是按次序排列的，变量的取值由它的位置决定；而对象的属性没有次序，变量必须与属性同名，才能取到正确的值。
+
+>对象的解构赋值的内部机制，是先找到同名属性，然后再赋值给对应的变量。真正被赋值的是后者，而不是前者。
+
+{% highlight javascript %}
+
+	var { name,age } = { name:'lisi', age:23 };
+	console.log(name + " ,"+ age);			//显示 lisi,23
+
+	var { ID,sex } = { ID:'lisi', age:23 };
+	console.log(ID + " ,"+ sex);			//显示 lisi,undefined
+
+	/*对象解构赋值的完整形式*/
+	var { foo: foo, bar: bar } = { foo: 'aaa', bar: 'bbb' };
+
+{% endhighlight %}
+
+## 1.3 字符串的解构赋值
+
+字符串也可以解构赋值。这是因为，此时字符串被转换成了一个类数组对象。
+{% highlight javascript %}
+
+	var [arr1,arr2,arr3,arr4,arr5] = 'hello';
+	console.log( arr1 );			//显示 h	
+	console.log( arr2 );			//显示 e	
+	console.log( arr3 );			//显示 l	
+	console.log( arr4 );			//显示 l	
+	console.log( arr5 );			//显示 o	
+
+
+{% endhighlight %}
+
+## 1.4 数值和布尔值的解构赋值
+
+`。。。。。。`
+
+## 1.5 函数参数的解构赋值
+
+`。。。。。。`
+
+## 1.6 解构赋值的用途
+
+#### 🇨🇳交换变量
+
+{% highlight javascript %}
+
+	var x = 1;
+	var y = 2;
+
+	[x,y] = [y,x];
+
+	console.log(x);		//显示 2
+	console.log(y);		//显示 1
+
+
+{% endhighlight %}
+>没有解构赋值的情况下，交换两个变量需要一个临时变量。
+
+{% highlight javascript %}
+	var a = 1;
+	var b = 2;
+	var c;
+	c = a;
+	a = b;
+	b = c;
+	console.log(a);		//显示 2
+	console.log(b);		//显示 1
+{% endhighlight %}
+
+
+#### 🇨🇳返回多值
+
+函数只能返回一个值，如果返回多个值，只能将其放在数组或对象中返回。有了解构赋值，取出这些返回值十分便利。
+
+{% highlight javascript %}
+	
+	/*返回一个数组*/
+	function example()
+	{
+		return [1,2,3];
+	}
+
+	var [arg1,arg2,arg3] = example();
+	console.log(arg1 + "," + arg2 + "," + arg3);	//显示 1,2,3
+
+	/*返回一个对象*/
+	function people()
+	{
+		return {
+			name: 'lisi',
+			age: 23,
+			sex: 'female'
+		};
+	}
+	var [name,age,sex] = people();
+	console.log(name + "," + age + "," + sex);	//显示 lisi,23,female
+
+{% endhighlight %}
+
+#### 🇨🇳返函数参数定义
+
+#### 🇨🇳提取JSON数据
+
+#### 🇨🇳函数参数的默认值
+
+#### 🇨🇳遍历Map结构
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+I hope you are enjoy stay here!
+Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll Talk][jekyll-talk].
+
+[jekyll-docs]: http://jekyllrb.com/docs/home
+[jekyll-gh]:   https://github.com/jekyll/jekyll
+[jekyll-talk]: https://talk.jekyllrb.com/
