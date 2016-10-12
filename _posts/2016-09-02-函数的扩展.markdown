@@ -1,0 +1,494 @@
+---
+layout: post
+title:  "函数的扩展"
+date:   2016-09-02 09:48:29 +0800
+categories: jekyll update
+---
+## 1.1 函数参数的默认值
+
+#### 基本用法
+
+在`ES6`之前,不能直接为函数的参数指定默认值,只能采用变通的方法。
+
+{% highlight javascript %}
+
+    function log(x, y){
+        y = y || 'world';
+        console.log(x, y);
+    }
+    log('hello');               //显示 hello world
+    log('hello','ES6');         //显示 hello ES6
+    log('hello','');            //显示 hello world
+    
+    /*方法一*/
+    if(typeof y === 'undefiend'){
+        y = 'wrold';
+    }
+            
+    /*方法二*/
+    if(arguments.length === 1){
+        y = 'wrold';
+    }
+ 
+{% endhighlight %}
+
+`ES6`允许为函数的参数设置默认值,即直接写在函数参数定义的后面。
+
+{% highlight javascript %}
+
+    function log(x, y = 'world'){
+        console.log(x, y);
+    }
+    log('hello');           //显示 hello world
+    log('hello','ES6');     //显示 hello ES6
+    log('hello','');        //显示 hello world
+    
+    
+    function Point(x = 0, y = 0){
+        this.x = x;
+        this.y = y;
+    }
+    
+    var p = new Point();    
+    console.log(p);         //显示 Point { x: 0, y: 0 }
+ 
+{% endhighlight %}
+
+#### 参数默认值的位置
+
+通常情况下,定义了默认值的参数应该是函数的尾参数。如果非尾部的参数设置默认值,实际上这个参数无法省略。
+
+{% highlight javascript %}
+    
+    function f(w, x, y, z=4){
+    	return [w,x,y,z];
+    }
+    
+    console.log(f());           //显示 [ undefined, undefined, undefined, 4 ]
+    console.log(f(1));          //显示 [ 1, undefined, undefined, 4 ]
+    console.log(f(1,2));        //显示 [ 1, 2, undefined, 4 ]
+    console.log(f(1,2,3));      //显示 [ 1, 2, 3, 4 ]
+    
+    //若默认值不是尾部参数,要使默认值生效,必须显示的传入 undefined,否则会报错。
+    //并且传入 undefined,将触发该参数等于默认值,而传入 null则不会有这个效果。
+    
+    function f(x, y=2, z){
+    	return [x,y,z];
+    }
+    
+    console.log(f());                   //显示 [ undefined, 2, undefined ]
+    console.log(f(1,undefined,3));      //显示 [ 1, 2, 3 ]
+    console.log(f(1,null,3));           //显示 [ 1, null, 3 ]
+    console.log(f(1,2.00,3));           //显示 [ 1, 2.2, 3 ]
+    //console.log(f(1,,3));             //报错
+ 
+{% endhighlight %}
+
+#### 函数的 length 属性
+
+指定了函数的默认值以后,函数的length属性将返回没有指定默认值的参数个数。
+只有指定正确的为尾参数,该属性才有效。
+
+{% highlight javascript %}
+    
+    console.log((function(a){}).length);                //显示 1
+    console.log((function(a = 5){}).length);            //显示 0
+    console.log((function(a,b,c=5,d=6,e=7){}).length);  //显示 2
+ 
+{% endhighlight %}
+
+#### 作用域
+
+**????**如果参数默认值是一个变量,则该变量所处的作用域与其他变量的作用域规则一样,即先是当前函数的作用域,然后才是全局作用域。
+
+
+## 1.2 rest 参数(剩余参数)
+
+允许长度不确定的实参表示为一个数组。
+
+如果一个函数的最后一个形参是以 `... `为前缀的(形式为 `...变量名`),则在函数被调用时,该形参会成为一个`数组`,数组中的元素都是传递给该函数的多出来的实参的值。
+
+
+{% highlight javascript %}
+    
+    function add(...nums){
+    	let sum = 0;
+    	for(var n of nums){
+    		sum += n;
+    	}
+    	return sum;
+    }
+    
+    console.log(add(1,3,5,7,9));        //显示 25
+ 
+{% endhighlight %}
+>以上代码中的 add 函数是一个求和函数, 利用 rest参数可以向该函数传入任意数目的参数。
+
+
+>`rest参数 和 arguments对象 的区别`
+ 
+`① rest参数只包含那些没有对应形参的实参,而 arguments 对象包含了传给函数的所有实参。`
+
+`② arguments 对象不是一个真实的数组,只是一个类数组,而剩余参数是真实的 Array 实例,能够在它上面直接使用所有的数组方法,比如 sort、map、forEach、pop。`
+
+`③ arguments 对象对象还有一些附加的属性 (比如callee属性)。`
+
+{% highlight javascript %}
+    
+    //将arguments类数组对象转换成真实数组 -- Array.from()
+    function sortNumbers(){
+    	return Array.from(arguments).sort();
+    }
+    console.log(sortNumbers(1,4,3,2,5));        //显示 [ 1, 2, 3, 4, 5 ]
+    
+    //将arguments类数组对象转换成真实数组 -- Array.prototype.slice.call()
+    function sortNumbers(){
+    	return Array.prototype.slice.call(arguments).sort();
+    }
+    console.log(sortNumbers(1,4,3,2,5));        //显示 [ 1, 2, 3, 4, 5 ]
+    
+    //rest参数代替arguments rest参数是真实的数组
+    function sortNumbers(...nums){
+        return nums.sort();
+    }
+    console.log(sortNumbers(1,4,3,2,5));        //显示 [ 1, 2, 3, 4, 5 ]
+    
+    
+    //rest参数改写数组 push 方法
+    function push(array, ...items){
+        items.forEach((item)=>{
+            array.push(item);
+        });
+        return array;
+    }
+    var arr = [];
+    console.log(push(arr,1,2,3,4));             //显示 [ 1, 2, 3, 4 ]
+ 
+{% endhighlight %}
+
+`注意事项:`
+
+ `① rest参数之后不能再有其他参数(即只能是最后一个参数),否则报错。`
+ 
+ `② 函数的 length 属性不包括 rest参数。`
+ 
+
+{% highlight javascript %}
+    
+    //报错
+    function fn(a,...b,c){
+    	//...
+    }
+    
+    console.log((function(a){}).length);                //显示 1
+    console.log((function(...a){}).length);             //显示 0
+    console.log((function(a,...b){}).length);           //显示 1
+    console.log((function(a,b,c=1,...d){}).length);     //显示 2
+    
+{% endhighlight %}
+
+
+## 1.3 扩展运算符
+
+#### 含义
+
+`扩展运算符(spread)`是三个点(`...`)。它好比 rest参数的逆运算,将一个`数组`转为用逗号分隔的`参数序列`。
+
+{% highlight javascript %}
+    
+    console.log(...[1,2,3]);                //显示 1 2 3 
+    console.log(1,...[2,3,4],5);            //显示 1 2 3 4 5
+    [...document.querySelectorAll('div)];   //显示 [<div>,<div>,<div>,<div>]   
+    
+{% endhighlight %}
+
+### 替代数组 apply 方法
+
+由于扩展运算符可以展开数组,所以不需要apply方法将数组转为函数的参数。
+
+{% highlight javascript %}
+
+    //ES5写法
+    function fn(x,y,z){
+    }
+    var args = [0,1,2,3];
+    fn.apply(null,args);
+    
+    //ES6写法
+    function fn(x,y,z){
+    }
+    var args = [0,1,2,3];
+    fn(...args);
+            
+
+    
+    var numArr = [14,3,77,2];
+    console.log(Math.max.call(null,14,3,77,2));
+    console.log(Math.max.call(null,...numArr));
+    console.log(Math.max.apply(null,numArr));
+    console.log(Math.max(...numArr));
+    
+    
+    //ES5中,push方法的参数不能是数组,只能通过apply方法变通使用push方法。有了扩展运算符,就可以直接将数组传入push方法。
+    var arr1 = [0,1,2];
+    var arr2 = [0,1,2];
+    var arr3 = [0,1,2];
+    var arr4 = [0,1,2];
+    var arr5 = [0,1,2];
+    var testArr = [4,5,6];
+    
+    arr1.push(4,5,6);
+    console.log(arr1);          //显示 [ 0, 1, 2, 4, 5, 6 ]
+    
+    arr2.push(...testArr);
+    console.log(arr2);          //显示 [ 0, 1, 2, 4, 5, 6 ]
+    
+    var concatArr = arr3.concat(testArr);
+    console.log(concatArr);     //显示 [ 0, 1, 2, 4, 5, 6 ]
+    
+    //[].push.apply(arr4,testArr);
+    Array.prototype.push.apply(arr4,testArr);	
+    console.log(arr4);          //显示 [ 0, 1, 2, 4, 5, 6 ]
+    
+    
+    //[].push.apply(arr5,testArr);
+    Array.prototype.push.call(arr5,...testArr);	
+    console.log(arr5);          //显示 [ 0, 1, 2, 4, 5, 6 ]
+    
+{% endhighlight %}
+
+### 扩展运算符的运用
+
+`合并数组`
+
+`ES5:`  `[1,2].concat(more)`
+
+`ES6:`  `[1,2,...more]`
+
+
+{% highlight javascript %}
+    
+    var arr1 = ['a','b'];
+    var arr2 = ['c'];
+    var arr3 = ['d','e'];
+    
+    //ES5
+    arr1.concat(arr1,arr2);         //[ 'a', 'b', 'c', 'd', 'e' ]
+    
+    //ES6
+    [...arr1,...arr2,...arr3];      //[ 'a', 'b', 'c', 'd', 'e' ]
+    
+{% endhighlight %}
+
+`类数组对象`
+
+`任何类数组的对象(arguments HTMLCollection nodeList等)都可以用扩展运算符转为真正的数组。`
+
+`[...类数组对象] ----> [数组]`
+
+{% highlight javascript %}
+
+    var nodeList = document.querySelectorAll('span');
+    var spanArr = [...nodeList];
+
+{% endhighlight %}
+
+>querySelectorAll 方法返回的一个 nodeList 对象,扩展运算符可以将其转为真正的数组。
+
+`。。。。与解构赋值结合`
+
+`。。。。函数的返回值`
+
+`。。。。字符串`
+
+`。。。。Map 和 Set 结构, Generator函数`
+
+
+## 1.4 name 属性
+
+函数的 `name` 属性返回该函数的函数名。
+
+>注意: 如果将一个匿名函数赋值给一个变量, ES5的name属性会返回空字符串,而ES6的name属性会返回史记的函数名。
+>Function构造函数返回的函数实例,name属性的值为 "anonymous"
+>bind返回的函数,name属性值会加上 "bound" 前缀
+
+{% highlight javascript %}
+    
+    var fact = function(){
+         //...
+    }
+    console.log(fact.name);		        //显示 fact
+    
+    var fn = function(){
+        //
+    }
+    console.log(fn.name);		        //显示 fn
+    
+    var bar = function baz(){
+    	//...
+    }
+    console.log(bar.name);		        //显示 baz
+    
+    console.log((function(){}).name);	
+    
+    console.log((new Function).name);	        //显示 anonymous
+    
+    function foo(){
+    	//...
+    }
+    
+    console.log(foo.bind({}).name);		//显示 bound foo
+    
+    console.log((function(){}).bind({}).name);	//显示 bound 
+
+    
+{% endhighlight %}
+
+
+## 1.5 箭头函数
+
+### 基本用法
+
+`ES6`允许使用 `箭头( => )`定义函数。
+ 
+#### 基本语法
+ 
+ {% highlight javascript %}
+ 
+     (param1, param2, …, paramN) => { statements }
+     (param1, param2, …, paramN) => expression
+              // equivalent to:  => { return expression; }
+     
+     // 如果只有一个参数，圆括号是可选的:
+     (singleParam) => { statements }
+     singleParam => { statements }
+     
+     // 无参数的函数需要使用圆括号:
+     () => { statements }
+     
+     // 返回对象字面量时应当用圆括号将其包起来:
+     params => ({foo: bar})
+     
+     // 支持 Rest parameters 和 default parameters:
+     (param1, param2, ...rest) => { statements }
+     (param1 = defaultValue1, param2, …, paramN = defaultValueN) => { statements }
+ 
+ {% endhighlight %}
+
+>箭头函数的引入有两个方面的影响：一是更简短的函数书写，二是对 this 的词法解析。
+
+`注意事项:`
+
+`① ★★箭头函数体内的this对象就是定义是所在的对象,而不是使用时所在的对象。`
+
+`② 不可以当作构造函数。也就是说,不可以使用 new 操作符,否则会抛出一个错误。`
+
+>箭头函数内部 this 指向固化,并不是因为箭头函数内部有绑定 this 的机制,实际原因是箭头函数根本没有自己的 this,导致内部的 this 就是外层代码块的 this。正因为它没有 this, 所以也就不能用作构造函数,不能使用 new 操作符。
+
+`③ 不可以使用 arguments 对象,该对象在箭头函数体内不存在。`
+
+>由于箭头函数没有自己的 this, 当然也就不能用 call( )、apply( )、bind( )等方法去改变 this 的指向。
+
+`④ 不可以使用 yield 命令,因此箭头函数不能用作 Generator函数。`
+
+{% highlight javascript %}
+ 
+     function Person(){
+     	this.age = Math.ceil(Math.random() * 100) + 1;
+     }
+     
+     
+     Person.prototype.sayAge = function(){
+     	setTimeout(function(){
+     		//console.log(this === window);	// true
+     		this.showAge();	//this.showAge is not a function
+     	},1000);
+     }
+     
+     
+     
+     Person.prototype.sayAge = function(){
+     	var _self = this;
+     	setTimeout(function(){
+     		//_self.showAge.apply(_self);
+     		_self.showAge.call(_self);
+     	},1000);
+     }
+     
+     
+     
+     Person.prototype.sayAge = function(){
+     	var _self = this;
+     	setTimeout(function(){
+     		_self.showAge.bind(_self)();
+     	},1000);
+     }
+     
+     
+     
+     Person.prototype.sayAge = function(){
+     	setTimeout(()=>{
+     		console.log(this);
+       		this.showAge();
+       	},1000);
+     }
+     
+     Person.prototype.showAge = function(){
+     	console.log('I am ' + this.age + ' years old!');
+     }
+     
+     global.showAge = function(){
+     	console.log('setTimeout inner this is window');
+     }
+     
+     var lisi = new Person();
+     lisi.sayAge();
+     
+ 
+ {% endhighlight %}
+ 
+ 
+ {% highlight javascript %}
+ 
+ 
+     function foo(){
+        setTimeout(function(){
+            console.log(arguments);
+        },1000);
+     }
+     
+     foo(1,2,3,4);
+     
+     
+     
+     function baz(){
+        setTimeout(()=>{
+            console.log(arguments);
+        },1000);
+     }
+     
+     baz('a','b','c','d');
+ 
+ 
+ {% endhighlight %}
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
